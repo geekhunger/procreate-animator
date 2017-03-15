@@ -20,7 +20,7 @@ end
 
 
 function Label:draw()
-    fill(30, 27, 25, 255)
+    fill(colorPico8.black)
     text(self.label, self.x, self.y)
 end
 
@@ -38,12 +38,13 @@ end
 
 function Button:draw()
     if self.active then
-        fill(156, 44, 87, 255)
+        fill(colorPico8.pink)
     else
-        fill(47, 96, 156, 255)
+        fill(colorPico8.indigo)
     end
+    
     rect(self.x, self.y, self.width, self.height)
-    fill(175, 155, 136, 255)
+    fill(colorPico8.light_gray)
     text(self.label, self.x, self.y)
     
     -- Long press handler

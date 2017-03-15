@@ -1,20 +1,24 @@
-
--- Procreate Animation Player v1.2.0
+--------------------------------------------------
+-- Procreate To Codea Animation Creator v1.3
 -- (c) jack0088@me.com
+--------------------------------------------------
+
+displayMode(FULLSCREEN)
 
 function setup()
     -- Styles
-    displayMode(FULLSCREEN)
     textAlign(CENTER)
     textMode(CENTER)
     rectMode(CENTER)
+    noSmooth()
     
     -- Sprite
-    spr_src = readImage("Dropbox:dotted")
+    spr_src = readImage("Dropbox:alex-16x32")
     spr_frm = loadstring(readProjectData("spr_frm", "return{vec2(0,0)}"))()
+    spr_scale = tonumber(readProjectData("spr_scale", "1"))
     spr_curr_frm = 1
     
-    -- Frame
+    -- Frame mask
     frm_mask = {}
     frm_width = math.tointeger(readProjectData("frm_width", 128))
     frm_height = math.tointeger(readProjectData("frm_height", 256))
@@ -29,6 +33,7 @@ function setup()
     lbl[5] = Label{label = frm_fps.." fps"} -- frm_fps value
     lbl[6] = Label{label = "Frame"} -- spr_frm label
     lbl[7] = Label{label = spr_curr_frm.." / "..#spr_frm} -- spr_frm value
+    lbl[8] = Label{label = spr_scale}
     
     -- Buttons
     btn = {}
@@ -39,28 +44,28 @@ function setup()
     btn[1] = Button{label = "-", width = size_s.x, height = size_s.y, callback = function()
         frm_width = math.max(0, frm_width - 1)
         lbl[3].label = frm_width
-        orientationChanged()
+        update_frame_mask()
     end}
     
     -- frm_width bigger
     btn[2] = Button{label = "+", width = size_s.x, height = size_s.y, callback = function()
         frm_width = math.min(999, frm_width + 1)
         lbl[3].label = frm_width
-        orientationChanged()
+        update_frame_mask()
     end}
     
     -- frm_height smaller
     btn[3] = Button{label = "-", width = size_s.x, height = size_s.y, callback = function()
         frm_height = math.max(0, frm_height - 1)
         lbl[4].label = frm_height
-        orientationChanged()
+        update_frame_mask()
     end}
     
     -- frm_height bigger
     btn[4] = Button{label = "+", width = size_s.x, height = size_s.y, callback = function()
         frm_height = math.min(999, frm_height + 1)
         lbl[4].label = frm_height
-        orientationChanged()
+        update_frame_mask()
     end}
     
     -- frm_fps less
@@ -113,12 +118,13 @@ function setup()
         local rows = h / frm_height
         local cols = w / frm_width
         local dir = "Dropbox"
+        local suffix = "_"..frm_width.."x"..frm_height
         local assets = assetList(dir, SPRITES)
         local atlas = image(w, h)
         
         for k, key in ipairs(assets) do
             if tostring(readImage(dir..":"..key)) == tostring(spr_src) then
-                dir = dir..":"..key.."_"..frm_width.."x"..frm_height
+                dir = dir..":"..key..suffix
                 break
             end
         end
@@ -157,54 +163,88 @@ function setup()
     -- spr_frm clear
     btn[12] = Button{label = "CLR", width = size_m.x, height = size_m.y, frequency = math.huge, callback = function()
         spr_frm = {vec2(0, 0)}
-        btn[7].callback()
+        spr_curr_frm = 1
+        lbl[7].label = spr_curr_frm.." / "..#spr_frm
     end}
+    
+    -- spr_scale smaller
+    btn[13] = Button{label = "-", width = size_s.x, height = size_s.y, callback = function()
+        spr_scale = math.max(.25, spr_scale - .25)
+        lbl[8].label = spr_scale
+    end}
+    
+    -- spr_scale bigger
+    btn[14] = Button{label = "+", width = size_s.x, height = size_s.y, callback = function()
+        spr_scale = math.min(2, spr_scale + .25)
+        lbl[8].label = spr_scale
+    end}
+    
+    update_frame_mask()
+    update_ui_elements()
 end
 
-function orientationChanged()
-    if frm_width and frm_height then
-        -- Frame
-        local rem_width = WIDTH - frm_width
-        local rem_height = HEIGHT - frm_height
-        
-        frm_mask[1] = vec4(rem_width*.25, HEIGHT - rem_height*.25, rem_width*.5, rem_height*.5) -- top left
-        frm_mask[2] = vec4(WIDTH*.5, HEIGHT - rem_height*.25, frm_width, rem_height*.5) -- top center
-        frm_mask[3] = vec4(WIDTH - rem_width*.25, HEIGHT - rem_height*.25, rem_width*.5, rem_height*.5) -- top right
-        frm_mask[4] = vec4(rem_width*.25, HEIGHT*.5, rem_width*.5, frm_height) -- middle left
-        frm_mask[5] = vec4(WIDTH - rem_width*.25, HEIGHT*.5, rem_width*.5, frm_height) -- middle right
-        frm_mask[6] = vec4(rem_width*.25, rem_height*.25, rem_width*.5, rem_height*.5) -- bottom left
-        frm_mask[7] = vec4(WIDTH*.5, rem_height*.25, frm_width, rem_height*.5) -- bottom center
-        frm_mask[8] = vec4(WIDTH - rem_width*.25, rem_height*.25, rem_width*.5, rem_height*.5) -- bottom right
-        
-        -- Labels
-        lbl[1].x, lbl[1].y = 50, HEIGHT - 50 -- frm_width label
-        lbl[2].x, lbl[2].y = WIDTH - 195, HEIGHT - 50 -- frm_height label
-        lbl[3].x, lbl[3].y = 165, HEIGHT - 50 -- frm_width value
-        lbl[4].x, lbl[4].y = WIDTH - 75, HEIGHT - 50 -- frm_height value
-        lbl[5].x, lbl[5].y = 90, 50 -- frm_fps value
-        lbl[6].x, lbl[6].y = WIDTH - 220, 50 -- spr_frm label
-        lbl[7].x, lbl[7].y = WIDTH - 90, 50 -- spr_frm value
-        
-        -- Buttons
-        btn[1].x, btn[1].y = 120, HEIGHT - 50 -- frm_width -
-        btn[2].x, btn[2].y = 210, HEIGHT - 50 -- frm_width +
-        btn[3].x, btn[3].y = WIDTH - 120, HEIGHT - 50 -- frm_height -
-        btn[4].x, btn[4].y = WIDTH - 30, HEIGHT - 50 -- frm_height +
-        btn[5].x, btn[5].y = 30, 50 -- frm_fps -
-        btn[6].x, btn[6].y = 150, 50 -- frm_fps +
-        btn[7].x, btn[7].y = WIDTH - 150, 50 -- spr_frm prev
-        btn[8].x, btn[8].y = WIDTH - 30, 50 -- spr_frm next
-        btn[12].x, btn[12].y = WIDTH*.5 - btn[12].width*1.5, HEIGHT - 50 -- spr_src save
-        btn[9].x, btn[9].y = WIDTH*.5 - btn[9].width*.5, HEIGHT - 50 -- spr_src save
-        btn[10].x, btn[10].y = WIDTH*.5 + btn[10].width*.5, HEIGHT - 50 -- spr_frm remove
-        btn[11].x, btn[11].y = WIDTH*.5 + btn[11].width*1.5, HEIGHT - 50 -- spr_frm add
+
+function update_frame_mask()
+    local rem_width = WIDTH - frm_width
+    local rem_height = HEIGHT - frm_height
+    
+    frm_mask[1] = vec4(rem_width*.25, HEIGHT - rem_height*.25, rem_width*.5, rem_height*.5) -- top left
+    frm_mask[2] = vec4(WIDTH*.5, HEIGHT - rem_height*.25, frm_width, rem_height*.5) + vec4(0, 0, -2, 0) -- top center
+    frm_mask[3] = vec4(WIDTH - rem_width*.25, HEIGHT - rem_height*.25, rem_width*.5, rem_height*.5) -- top right
+    frm_mask[4] = vec4(rem_width*.25, HEIGHT*.5, rem_width*.5, frm_height) + vec4(0, 0, 0, -2) -- middle left
+    frm_mask[5] = vec4(WIDTH - rem_width*.25, HEIGHT*.5, rem_width*.5, frm_height) + vec4(0, 0, 0, -2) -- middle right
+    frm_mask[6] = vec4(rem_width*.25, rem_height*.25, rem_width*.5, rem_height*.5) -- bottom left
+    frm_mask[7] = vec4(WIDTH*.5, rem_height*.25, frm_width, rem_height*.5) + vec4(0, 0, -2, 0) -- bottom center
+    frm_mask[8] = vec4(WIDTH - rem_width*.25, rem_height*.25, rem_width*.5, rem_height*.5) -- bottom right
+end
+
+
+function update_ui_elements()
+    -- Labels
+    lbl[1].x, lbl[1].y = 50, HEIGHT - 60 -- frm_width label
+    lbl[2].x, lbl[2].y = WIDTH - 195, HEIGHT - 60 -- frm_height label
+    lbl[3].x, lbl[3].y = 165, HEIGHT - 60 -- frm_width value
+    lbl[4].x, lbl[4].y = WIDTH - 75, HEIGHT - 60 -- frm_height value
+    lbl[5].x, lbl[5].y = 90, 60 -- frm_fps value
+    lbl[6].x, lbl[6].y = WIDTH - 220, 60 -- spr_frm label
+    lbl[7].x, lbl[7].y = WIDTH - 90, 60 -- spr_frm value
+    lbl[8].x, lbl[8].y = 30, HEIGHT/2 -- spr_scale
+    
+    -- Buttons
+    btn[1].x, btn[1].y = 120, HEIGHT - 60 -- frm_width -
+    btn[2].x, btn[2].y = 210, HEIGHT - 60 -- frm_width +
+    btn[3].x, btn[3].y = WIDTH - 120, HEIGHT - 60 -- frm_height -
+    btn[4].x, btn[4].y = WIDTH - 30, HEIGHT - 60 -- frm_height +
+    btn[5].x, btn[5].y = 30, 60 -- frm_fps -
+    btn[6].x, btn[6].y = 150, 60 -- frm_fps +
+    btn[7].x, btn[7].y = WIDTH - 150, 60 -- spr_frm prev
+    btn[8].x, btn[8].y = WIDTH - 30, 60 -- spr_frm next
+    btn[9].x, btn[9].y = WIDTH*.5 - btn[9].width*.5 - 1, HEIGHT - 60 -- spr_src save
+    btn[10].x, btn[10].y = WIDTH*.5 + btn[10].width*.5 + 1, HEIGHT - 60 -- spr_frm remove
+    btn[11].x, btn[11].y = WIDTH*.5 + btn[11].width*1.5 + 3, HEIGHT - 60 -- spr_frm add
+    btn[12].x, btn[12].y = WIDTH*.5 - btn[12].width*1.5 - 3, HEIGHT - 60 -- spr_frm clear
+    btn[13].x, btn[13].y = 30, HEIGHT/2 - 50 -- frm_scale -
+    btn[14].x, btn[14].y = 30, HEIGHT/2 + 50 -- frm_scale +
+end
+
+
+function orientationChanged(screen)
+    if screen.prevOrientationName ~= screen.currOrientationName
+    and frm_width and frm_height
+    then
+        update_frame_mask()
+        update_ui_elements()
     end
 end
 
+
 function draw()
-    background(36, 39, 65, 255)
+    background(colorPico8.dark_blue)
     
     -- Canvas
+    local w = spr_src.width * spr_scale
+    local h = spr_src.height * spr_scale
+    
     clip(WIDTH*.5 - frm_width*.5, HEIGHT*.5 - frm_height*.5, frm_width, frm_height)
     
     if spr_dragging then
@@ -215,11 +255,11 @@ function draw()
         pushStyle()
         if spr_curr_frm > 1 then
             tint(53, 91, 239, 120)
-            sprite(spr_src, WIDTH*.5 + spr_frm[onion_prev].x, HEIGHT*.5 + spr_frm[onion_prev].y)
+            sprite(spr_src, WIDTH*.5 + spr_frm[onion_prev].x, HEIGHT*.5 + spr_frm[onion_prev].y, w, h)
         end
         if spr_curr_frm < #spr_frm then
             tint(0, 255, 0, 120)
-            sprite(spr_src, WIDTH*.5 + spr_frm[onion_next].x, HEIGHT*.5 + spr_frm[onion_next].y)
+            sprite(spr_src, WIDTH*.5 + spr_frm[onion_next].x, HEIGHT*.5 + spr_frm[onion_next].y, w, h)
         end
         popStyle()
         clip()
@@ -229,7 +269,8 @@ function draw()
         end
     end
     
-    sprite(spr_src, WIDTH*.5 + spr_frm[spr_curr_frm].x, HEIGHT*.5 + spr_frm[spr_curr_frm].y)
+    sprite(spr_src, WIDTH*.5 + spr_frm[spr_curr_frm].x, HEIGHT*.5 + spr_frm[spr_curr_frm].y, w, h)
+    
     clip()
     
     -- Frame
@@ -255,6 +296,7 @@ function draw()
     end
 end
 
+
 function touched(touch)
     -- Buttons
     for b = 1, #btn do
@@ -278,9 +320,11 @@ function touched(touch)
         for i, v in ipairs(spr_frm) do
             table.insert(pos, "vec2"..tostring(v))
         end
+        
         saveProjectData("frm_fps", frm_fps)
         saveProjectData("frm_width", frm_width)
         saveProjectData("frm_height", frm_height)
+        saveProjectData("spr_scale", spr_scale)
         saveProjectData("spr_frm", "return{"..table.concat(pos, ",").."}")
     end
 end

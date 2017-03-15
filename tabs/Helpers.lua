@@ -38,6 +38,38 @@ colorPico8.peach       = colorPico8[16]
 colorPico8.white       = colorPico8[17]
 
 
+-- Format the console output of a table
+function printf(t, indent)
+    if not indent then indent = "" end
+    local names = {}
+    for n, g in pairs(t) do
+        table.insert(names, n)
+    end
+    table.sort(names)
+    for i, n in pairs(names) do
+        local v = t[n]
+        if type(v) == "table" then
+            if v == t then -- prevent endless loop on self reference
+                print(indent..tostring(n)..": <-")
+            else
+                print(indent..tostring(n)..":")
+                printf(v, indent.."   ")
+            end
+        elseif type(v) == "function" then
+            print(indent..tostring(n).."()")
+        else
+            print(indent..tostring(n)..": "..tostring(v))
+        end
+    end
+end
+
+
+-- Map value from one range to another
+function remapRange(val, a1, a2, b1, b2)
+    return b1 + (val-a1) * (b2-b1) / (a2-a1)
+end
+
+
 -- Codea's Orientation Handler (rewritten). Now this callback fires only if something really changed.
 -- displayMode also triggers this event!
 -- If displayMode is provided before(!) setup() then Codea knows its screen size upfront and doesn't call this callback before setup
