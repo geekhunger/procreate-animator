@@ -13,7 +13,7 @@ function setup()
     noSmooth()
     
     -- Sprite
-    spr_src = readImage("Dropbox:alex-16x32")
+    spr_src = readImage("Dropbox:rocket") -- NOTE: CHOOSE HERE! Then run app.
     spr_frm = loadstring(readProjectData("spr_frm", "return{vec2(0,0)}"))()
     spr_scale = tonumber(readProjectData("spr_scale", "1"))
     spr_curr_frm = 1
@@ -136,8 +136,10 @@ function setup()
                 if i > #spr_frm then break end
                 local frm_pos = vec2(c*frm_width - frm_width, r*frm_height - frm_height)
                 local spr_pos = vec2(frm_width*.5, frm_height*.5) + spr_frm[i]
+                local width = spr_src.width * spr_scale
+                local height = spr_src.height * spr_scale
                 clip(frm_pos.x, frm_pos.y, frm_width, frm_height)
-                sprite(spr_src, spr_pos.x + frm_pos.x, spr_pos.y + frm_pos.y)
+                sprite(spr_src, spr_pos.x + frm_pos.x, spr_pos.y + frm_pos.y, width, height)
                 clip()
             end
         end
@@ -169,18 +171,21 @@ function setup()
     
     -- spr_scale smaller
     btn[13] = Button{label = "-", width = size_s.x, height = size_s.y, callback = function()
-        spr_scale = math.max(.25, spr_scale - .25)
+        spr_scale = math.max(.125, spr_scale - .125)
         lbl[8].label = spr_scale
     end}
     
     -- spr_scale bigger
     btn[14] = Button{label = "+", width = size_s.x, height = size_s.y, callback = function()
-        spr_scale = math.min(2, spr_scale + .25)
+        spr_scale = math.min(4, spr_scale + .125)
         lbl[8].label = spr_scale
     end}
     
+    -- Init calls
     update_frame_mask()
     update_ui_elements()
+    
+    parameter.color("bg_color", color(29, 133, 122, 255))
 end
 
 
@@ -223,15 +228,13 @@ function update_ui_elements()
     btn[10].x, btn[10].y = WIDTH*.5 + btn[10].width*.5 + 1, HEIGHT - 60 -- spr_frm remove
     btn[11].x, btn[11].y = WIDTH*.5 + btn[11].width*1.5 + 3, HEIGHT - 60 -- spr_frm add
     btn[12].x, btn[12].y = WIDTH*.5 - btn[12].width*1.5 - 3, HEIGHT - 60 -- spr_frm clear
-    btn[13].x, btn[13].y = 30, HEIGHT/2 - 50 -- frm_scale -
-    btn[14].x, btn[14].y = 30, HEIGHT/2 + 50 -- frm_scale +
+    btn[13].x, btn[13].y = 30, HEIGHT/2 - 40 -- frm_scale -
+    btn[14].x, btn[14].y = 30, HEIGHT/2 + 40 -- frm_scale +
 end
 
 
 function orientationChanged(screen)
-    if screen.prevOrientationName ~= screen.currOrientationName
-    and frm_width and frm_height
-    then
+    if frm_width and frm_height then
         update_frame_mask()
         update_ui_elements()
     end
@@ -239,11 +242,11 @@ end
 
 
 function draw()
-    background(colorPico8.dark_blue)
+    background(bg_color)
     
     -- Canvas
-    local w = spr_src.width * spr_scale
-    local h = spr_src.height * spr_scale
+    local spr_width = spr_src.width * spr_scale
+    local spr_height = spr_src.height * spr_scale
     
     clip(WIDTH*.5 - frm_width*.5, HEIGHT*.5 - frm_height*.5, frm_width, frm_height)
     
@@ -254,12 +257,12 @@ function draw()
         
         pushStyle()
         if spr_curr_frm > 1 then
-            tint(53, 91, 239, 120)
-            sprite(spr_src, WIDTH*.5 + spr_frm[onion_prev].x, HEIGHT*.5 + spr_frm[onion_prev].y, w, h)
+            tint(colorPico8.blue.r, colorPico8.blue.g, colorPico8.blue.b, 120)
+            sprite(spr_src, WIDTH*.5 + spr_frm[onion_prev].x, HEIGHT*.5 + spr_frm[onion_prev].y, spr_width, spr_height)
         end
         if spr_curr_frm < #spr_frm then
-            tint(0, 255, 0, 120)
-            sprite(spr_src, WIDTH*.5 + spr_frm[onion_next].x, HEIGHT*.5 + spr_frm[onion_next].y, w, h)
+            tint(colorPico8.green.r, colorPico8.green.g, colorPico8.green.b, 120)
+            sprite(spr_src, WIDTH*.5 + spr_frm[onion_next].x, HEIGHT*.5 + spr_frm[onion_next].y, spr_width, spr_height)
         end
         popStyle()
         clip()
@@ -269,7 +272,7 @@ function draw()
         end
     end
     
-    sprite(spr_src, WIDTH*.5 + spr_frm[spr_curr_frm].x, HEIGHT*.5 + spr_frm[spr_curr_frm].y, w, h)
+    sprite(spr_src, WIDTH*.5 + spr_frm[spr_curr_frm].x, HEIGHT*.5 + spr_frm[spr_curr_frm].y, spr_width, spr_height)
     
     clip()
     
