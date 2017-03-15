@@ -7,16 +7,12 @@
 	<key>Buffer Order</key>
 	<array>
 		<string>Main</string>
-		<string>Labels</string>
+		<string>Helpers</string>
+		<string>Lfs</string>
 		<string>Buttons</string>
 	</array>
 	<key>Dependencies</key>
-	<array>
-		<string>Pretty</string>
-		<string>Hooks</string>
-		<string>Backup</string>
-		<string>Debugger</string>
-	</array>
+	<array/>
 	<key>Description</key>
 	<string>No description available</string>
 </dict>

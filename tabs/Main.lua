@@ -1,13 +1,10 @@
--- Procreate Animation Player [v1.0.0]
--- (c) kennstewayne.de
---
--- Open src file manually. Will be exported to same location.
---
 
-displayMode(FULLSCREEN)
+-- Procreate Animation Player v1.2.0
+-- (c) jack0088@me.com
 
 function setup()
     -- Styles
+    displayMode(FULLSCREEN)
     textAlign(CENTER)
     textMode(CENTER)
     rectMode(CENTER)
